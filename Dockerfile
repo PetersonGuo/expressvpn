@@ -40,9 +40,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     && ln -sf /usr/lib/arm-linux-gnueabihf /lib/arm-linux-gnueabihf; \
     fi
 
-RUN wget -q https://www.expressvpn.works/clients/linux/expressvpn_${NUM}-1_${PLATFORM}.deb -O /expressvpn/expressvpn_${NUM}-1_${PLATFORM}.deb \
-    && dpkg -i /expressvpn/expressvpn_${NUM}-1_${PLATFORM}.deb \
-    && rm -rf /expressvpn/*.deb
+RUN /expressvpn/download_latest_expressvpn.sh
 
 RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     patchelf --set-interpreter /lib/ld-linux-armhf.so.3 /usr/bin/expressvpn \
