@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [[ $AUTO_UPDATE = "on" ]]; then
+set -e
+
+if [[ "${AUTO_UPDATE}" = "on" ]]; then
     DEBIAN_FRONTEND=noninteractive apt update && apt -y -o Dpkg::Options::="--force-confdef" -o \
     Dpkg::Options::="--force-confnew" install -y --only-upgrade expressvpn --no-install-recommends \
     && apt autoclean && apt clean && apt autoremove && rm -rf /var/lib/apt/lists/* && rm -rf /var/log/*.log
@@ -23,8 +25,8 @@ then
 fi
 
 output=$(expect -f /expressvpn/activate.exp "$CODE")
-if echo "$output" | grep -q "Please activate your account" > /dev/null || echo "$output" | grep -q "Activation failed" > /dev/null
-then
+echo "$output"
+if echo "$output" | grep -iq "Please activate your account" || echo "$output" | grep -iq "Activation failed"; then
     echo "Activation failed!"
     exit 1
 fi
@@ -37,8 +39,7 @@ bash /expressvpn/uname.sh
 expressvpn preferences set auto_connect true
 expressvpn connect $SERVER || exit
 
-for i in $(echo $WHITELIST_DNS | sed "s/ //g" | sed "s/,/ /g")
-do
+for i in $(echo $WHITELIST_DNS | sed "s/ //g" | sed "s/,/ /g"); do
     iptables -A xvpn_dns_ip_exceptions -d ${i}/32 -p udp -m udp --dport 53 -j ACCEPT
     echo "allowing dns server traffic in iptables: ${i}"
 done
@@ -52,7 +53,7 @@ if [[ $SOCKS = "on" ]]; then
     
     if [[ -n "$SOCKS_USER" && -z "$SOCKS_PASS" ]] || [[ -z "$SOCKS_USER" && -n "$SOCKS_PASS" ]]; then
         echo "Error: Both SOCKS_USER and SOCKS_PASS must be set, or neither."
-        exit
+        exit 1
     elif [[ -n "$SOCKS_USER" && -n "$SOCKS_PASS" ]]; then
         
         if [[ $SOCKS_AUTH_ONCE = "true" ]]; then

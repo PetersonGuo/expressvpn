@@ -1,19 +1,34 @@
 #!/usr/bin/expect -f
 
+# Set unlimited timeout
 set timeout -1
-set CODE [lindex $argv 0];
+
+# Retrieve the activation code from the environment
+set activation_code $env(CODE)
+
+# Start the activation process
 spawn expressvpn activate
 match_max 100000
+
+# Handle various prompts
 expect {
-	"Already activated. Logout from your account (y/N)?" {
-		send "N\r"
-	}
-	"Enter activation code:" {
-		send "$CODE\r"
-		exp_continue
-	}
-	"Help improve ExpressVPN: Share crash reports, speed tests, usability diagnostics, and whether VPN connection attempts succeed. These reports never contain personally identifiable information. (Y/n)" {
-		send "n\r"
-	}
+    "Already activated. Logout from your account (y/N)?" {
+        send "N\r"
+        exp_continue
+    }
+    "Enter activation code:" {
+        send "$activation_code\r"
+        exp_continue
+    }
+    "Help improve ExpressVPN: Share crash reports, speed tests, usability diagnostics, and whether VPN connection attempts succeed. These reports never contain personally identifiable information. (Y/n)" {
+        send "n\r"
+        exp_continue
+    }
+    timeout {
+        puts "Error: Timeout occurred during activation"
+        exit 1
+    }
+    eof {
+        puts "ExpressVPN activation complete."
+    }
 }
-expect eof
