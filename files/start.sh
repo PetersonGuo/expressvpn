@@ -70,4 +70,5 @@ if [[ $SOCKS = "on" ]]; then
     $SOCKS_CMD &
 fi
 
-exec "$@"
+# Keep the container alive
+tail -f /dev/null
